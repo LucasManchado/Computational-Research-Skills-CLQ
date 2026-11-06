@@ -1,0 +1,88 @@
+---
+title: "Lucas side"
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+```{r}
+df <- read.csv("ScanRecords.csv")
+```
+
+```{r}
+df_split <- split(df, df$PatientType)
+type_1_df <- df_split$`Type 1`
+type_2_df <- df_split$`Type 2`
+```
+
+```{r}
+summary(df)
+```
+```{r}
+summary(type_1_df)
+```
+```{r}
+summary(type_2_df)
+```
+# Scan Duration
+
+```{r}
+print(
+ggplot(type_1_df, aes(x = Duration)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "lightblue", color = "white") +
+  
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(type_1_df$Duration), sd = sd(type_1_df$Duration)), 
+                color = "darkred", linewidth = 1.2) +
+  
+  labs(title = "Histogram of Type 1 Patients Scan Duration",
+       x = "Duration",
+       y = "Density") +
+  theme_minimal()
+)
+
+cat("--- Summary Statistics ---\n")
+cat("Mean:", mean(type_1_df$Duration), "\n")
+cat("Variance:", var(type_1_df$Duration), "\n")
+```
+
+```{r}
+ggplot(type_2_df, aes(x = Duration)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "lightblue", color = "white") +
+  
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(type_2_df$Duration), sd = sd(type_2_df$Duration)), 
+                color = "darkred", linewidth = 1.2) +
+  
+  labs(title = "Histogram of Type 2 Patients Scan Duration",
+       x = "Duration",
+       y = "Density") +
+  theme_minimal()
+```
+# Patient per Date
+
+```{r}
+type_1_day_counts <- as.data.frame(table(type_1_df$Date))
+
+
+lambda_val <- mean(type_1_day_counts$Freq)
+
+ggplot(type_1_day_counts, aes(x = Freq)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 1, fill = "lightblue", color = "white") +
+  
+  stat_function(fun = function(x) dpois(floor(x), lambda = lambda_val), 
+                color = "darkred", linewidth = 1.2) +
+  
+  labs(title = "Histogram with Poisson Distribution Fit",
+       x = "Frequency",
+       y = "Density") +
+  theme_minimal()
+```
+
